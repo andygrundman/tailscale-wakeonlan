@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+    <meta name="viewport" content="width=600, initial-scale=1">
+    <meta name="color-scheme" content="dark light">
+    <link rel="icon" href="ethernet.svg">
+    <link rel=”mask-icon” href="ethernet.svg" color=”#f38025">
+		<link rel="stylesheet" href="pico.pumpkin.min.css">
+    <style>
+      input.field-with-error { border-color: #af291d; }
+      button.awake { --pico-line-height: 3px; }
+      button.asleep { --pico-line-height: 3px; }
+      @media (max-width: 768px) {
+        table {
+          font-size: 14px;
+        }
+      }
+    </style>
+		<title>Tailscale Wake-on-LAN</title>
+	</head>
+
+	<body>
+    <header class="container">
+      <nav>
+        <ul>
+          <li><a href="/"><i class="fa-solid fa-ethernet fa-2xl" style="color: #f38025;"></i></a> <strong>Tailscale Wake-on-LAN</strong></li>
+        </ul>
+        <ul>
+          <li><a href="https://github.com/andygrundman/tailscale-wakeonlan"><i class="fa-brands fa-github"></i></a></li>
+          <li><a href="https://hub.docker.com/r/andygrundman/tailscale-wakeonlan"><i class="fa-brands fa-docker"></i></a></li>
+          <li><a href="https://login.tailscale.com/admin/machines"><img src="tailscale-pumpkin.png" width="22" height="22" style="vertical-align:-.125em;"/></a></li>
+        </ul>
+      </nav>
+    </header>
+
+		<main class="container">
+      <% for my $err (@{ flash('error_messages') // [] }) { %>
+      <div class="grid">
+        <div style="color: #d24317;">
+          <i class="fa-solid fa-triangle-exclamation"></i>
+          <%= $err %>
+        </div>
+      </div>
+      <% } %>
+
+      <table>
+        <thead>
+          <tr>
+            <th scope="col">Name</th>
+            <th scope="col">Status</th>
+            <th scope="col">
+              <a href="#" data-target="modal-add" onclick="addFormManager.showAdd(event);">
+                <i class="fa-regular fa-square-plus"></i>
+              </a>
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+
+        <% for my $i (@{ $hosts || [] }) { %>
+          <tr>
+            <td><h4><%= $i->{name} %></h4>
+              <small>
+                %= $i->{mac}
+                <br />
+                %= $i->{ip}
+              </small>
+            </td>
+            <td>
+              <div>
+                <a href="/wake?mac=<%= $i->{mac} %>">
+                  <button id="awake_<%= $i->{ip} %>" style="display: none;" class="awake primary pico-color-pumpkin-900" disabled>awake</button>
+                  <button id="asleep_<%= $i->{ip} %>" style="display: inline-block;" class="asleep outline contrast" disabled>asleep</button>
+                </a><br />
+                <progress id="progress_<%= $i->{ip} %>" style="display: none;"></progress>
+              </div>
+            </td>
+            <td>
+              <a href="#" data-target="modal-edit" onclick="editFormManager.showEdit(event, '<%= $i->{json} %>');">
+                <i class="fa-regular fa-pen-to-square"></i>
+              </a>
+            </td>
+          </tr>
+        <% } %>
+
+        </tbody>
+      </table>
+    </main>
+
+    <dialog id="modal-add">
+      <article>
+        <header>
+          <button aria-label="Close" rel="prev" data-target="modal-add" onclick="toggleModal(event)"></button>
+          <h3>Add Host</h3>
+        </header>
+        <form id="addForm" action="/add" method="post">
+          <div class="grid">
+            <label for="add_name">
+              Name
+              <%= text_field 'add_name', id => 'add_name', required => 1 %>
+            </label>
+            <label for="add_mac">
+              MAC Address
+              <%= text_field 'add_mac', id => 'add_mac', required => 1 %>
+            </label>
+            <label for="add_ip">
+              IP
+              <%= text_field 'add_ip', id => 'add_ip', required => 1 %>
+            </label>
+          </div>
+        </form>
+        <footer>
+          <button role="button" class="secondary" data-target="modal-add" onclick="toggleModal(event)">Cancel</button>
+          <button autofocus data-target="modal-add" onclick="addFormManager.submitForm(event)">Add</button>
+        </footer>
+      </article>
+    </dialog>
+
+    <dialog id="modal-edit">
+      <article>
+        <header>
+          <button aria-label="Close" rel="prev" data-target="modal-edit" onclick="toggleModal(event)"></button>
+          <h3>Edit Host</h3>
+        </header>
+        <form id="editForm" action="/edit" method="post">
+          <%= hidden_field mac => '', id => 'mac' %>
+          <div class="grid">
+            <label for="edit_name">
+              Name
+              <%= text_field 'edit_name', id => 'edit_name', required => 1 %>
+            </label>
+            <label for="edit_mac">
+              MAC Address
+              <%= text_field 'edit_mac', id => 'edit_mac', required => 1 %>
+            </label>
+            <label for="edit_ip">
+              IP
+              <%= text_field 'edit_ip', id => 'edit_ip', required => 1 %>
+            </label>
+          </div>
+        </form>
+        <form id="deleteForm" action="/delete" method="post">
+          <input id="delete_mac" type="hidden" name="mac" value=""/>
+        </form>
+        <footer>
+          <button role="button" class="outline contrast" data-target="modal-edit" onclick="editFormManager.deleteForm(event)">Delete</button>
+          <button role="button" class="secondary" data-target="modal-edit" onclick="toggleModal(event)">Cancel</button>
+          <button autofocus data-target="modal-edit" onclick="editFormManager.submitForm(event)">Save</button>
+        </footer>
+      </article>
+    </dialog>
+
+    <script src="https://kit.fontawesome.com/ac74e08e00.js" crossorigin="anonymous"></script>
+    <script defer type="text/javascript">const arisen='<%= flash('arisen') %>';</script>
+    <script defer type="text/javascript" src="helpers.js"></script>
+    <script defer type="text/javascript" src="modal.js"></script>
+  </body>
+</html>
+

@@ -1,0 +1,6 @@
+requires 'DDP';
+requires 'IO::Socket::IP';
+requires 'Mojolicious', '9.38';
+requires 'Net::IPv4Addr' => '0.10';
+requires 'Net::Ping' => '2.75';
+requires 'Regexp::Common' => '2024080801';

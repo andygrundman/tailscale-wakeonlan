@@ -1,0 +1,23 @@
+---
+services:
+  tailscale-wakeonlan:
+    image: andygrundman/tailscale-wakeonlan:latest
+    hostname: wakeonlan
+    container_name: tailscale-wakeonlan
+    environment:
+      - TAILSCALE_HOSTNAME=wakeonlan
+      - TAILSCALE_AUTHKEY=your-tskey
+      #- WOL_NETWORK=192.168.1.0/24  # optional
+    restart: unless-stopped
+    volumes:
+      - tailscale-wakeonlan-state:/var/lib/tailscale
+
+# This is here to avoid compose creating a new network for us, where WOL would fail until we looked up the
+# network name and enabled bc_forwarding in sysctl. By using the named "bridge" network it should be the default docker0
+# network we already enabled forwarding for.
+networks:
+  bridge:
+    driver: bridge
+
+volumes:
+  tailscale-wakeonlan-state: # not a typo
