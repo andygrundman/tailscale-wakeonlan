@@ -1,6 +1,6 @@
 ## Overview
 
-This is a Docker container designed to be run on a Linux host located inside your LAN network. It provides a simple web UI over Tailscale, allowing both local and remote tailnet devices to send wake-on-LAN packets to sleeping devices on your LAN.
+This is a Docker container designed to be run on an amd64 or arm64 Linux host located inside your LAN network. It provides a simple web UI over Tailscale, allowing both local and remote tailnet devices to send wake-on-LAN packets to sleeping devices on your LAN.
 
 ## Tailscale prep
 
@@ -20,19 +20,33 @@ A Linux sysctl setting needs to be changed on your Docker host machine to allow 
     sudo sysctl -w net.ipv4.conf.docker0.bc_forwarding=1
     echo 'net.ipv4.conf.docker0.bc_forwarding=1' | sudo tee -a /etc/sysctl.d/90-docker-wakeonlan.conf
 
-While the container does run in Docker on Windows (I tested with WSL2 mode and Debian), I am not sure there is an equivalent to the `bc_forwarding` sysctl to allow broadcast packets to leave the internal Docker network.
+While the container does run in both Docker for Windows (I tested with WSL2 mode and Debian) and Docker for macOS, I am not sure there is an equivalent to the `bc_forwarding` sysctl to allow broadcast packets to leave the internal Docker network on non-Linux systems.
 
 ## Usage
 
 You can run this container using either docker-compose or docker run.
 
-### docker compose (recommended)
+### docker run (recommended)
+
+```bash
+docker run -d \
+  --name tailscale-wakeonlan \
+  -e TAILSCALE_HOSTNAME=wakeonlan \
+  -e TAILSCALE_AUTHKEY=your-tskey \
+  -e WOL_NETWORK=192.168.1.0/24 `#optional` \
+  -v tailscale-wakeonlan-state:/var/lib/tailscale \
+  --restart unless-stopped \
+  --network bridge \
+  ghcr.io/andygrundman/tailscale-wakeonlan:latest
+```
+
+### docker compose
 
 ```yaml
 ---
 services:
   tailscale-wakeonlan:
-    image: andygrundman/tailscale-wakeonlan:latest
+    image: ghcr.io/andygrundman/tailscale-wakeonlan:latest
     hostname: wakeonlan
     container_name: tailscale-wakeonlan
     environment:
@@ -47,20 +61,6 @@ networks:
     driver: bridge
 volumes:
   tailscale-wakeonlan-state: # not a typo
-```
-
-### docker run
-
-```bash
-docker run -d \
-  --name tailscale-wakeonlan \
-  -e TAILSCALE_HOSTNAME=wakeonlan \
-  -e TAILSCALE_AUTHKEY=your-tskey \
-  -e WOL_NETWORK=192.168.1.0/24 `#optional` \
-  -v tailscale-wakeonlan-state:/var/lib/tailscale \
-  --restart unless-stopped \
-  --network bridge \
-  andygrundman/tailscale-wakeonlan:latest
 ```
 
 ## Parameters

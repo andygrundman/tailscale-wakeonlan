@@ -1,0 +1,7 @@
+Revision history for tailscale-wakeonlan
+
+2024-11-25
+    - Added arm64 image and automated image build/push with a GitHub action.
+
+2024-11-19
+    - Initial release
