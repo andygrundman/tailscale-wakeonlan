@@ -69,7 +69,7 @@ The following parameters can be configured within the Docker Compose environment
 
 | Parameter | Function |
 | :----: | --- |
-| `TAILSCALE_AUTHKEY` | Required. Create a new key from the Tailscale Settings -> Keys page for this variable. This key will need to be changed every 6 months. |
+| `TAILSCALE_AUTHKEY` | Required. Create a new key from the Tailscale Settings -> Keys page for this variable. By default this key will be valid for 6 months, but you are able to set it to never expire by going to: Machines -> wakeonlan -> Machine settings -> Disable key expiry. |
 | `TAILSCALE_HOSTNAME=wakeonlan` | Required. This value will be used as the Tailscale machine name, and the first part of the fully-qualified domain name when accessing the web interface. Default: `wakeonlan` |
 | `TAILSCALE_USE_SSH=1` | This container can also provide a secure way to ssh into your network via the `tailscale ssh` command. For more details, read [the docs](https://tailscale.com/kb/1193/tailscale-ssh). Default: `0` |
 | `WOL_NETWORK=192.168.1.0/24` | If your LAN subnet is not auto-detected correctly, you can specify it with this variable. The CIDR is used to choose the correct broadcast address to send wake-on-LAN packets to. |
