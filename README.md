@@ -76,7 +76,7 @@ The following parameters can be configured within the Docker Compose environment
 
 ## First time launch
 
-When your container has booted up, access it from any other host on your tailnet. https://tailscale-wakeonlan may work, or you can use the fully-qualified name as displayed in the console.
+When your container has booted up, access it from any other host on your tailnet. https://wakeonlan may work, or you can use the fully-qualified name as displayed in the console.
 
 The first time you connect over HTTPS it will appear to hang for a few seconds while it requests and installs a LetsEncrypt SSL certificate. When the wake-on-LAN web UI appears, you can verify the site has been secured by a valid certificate by clicking on the lock icon. This certificate will be managed and renewed automatically by [Tailscale serve](https://tailscale.com/kb/1242/tailscale-serve).
 
